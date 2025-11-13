@@ -1,0 +1,7 @@
+torch
+torchvision
+onnx
+opencv-contrib-python
+
+
+git+https://github.com/facebookresearch/segment-anything.git 
