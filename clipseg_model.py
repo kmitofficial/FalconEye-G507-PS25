@@ -9,7 +9,6 @@ from sam_model import call_sam
 # --- Setup device ---
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
-use_fp16 = (device.type == 'cuda')
 
 # --- Load CLIPSeg ---
 processor = CLIPSegProcessor.from_pretrained("CIDAS/clipseg-rd64-refined", use_fast=True)
@@ -33,10 +32,8 @@ def clipping(frame: np.ndarray, ref_image: np.ndarray = None, text: str = None) 
         inputs = processor(images=image_pil, return_tensors="pt")
         inputs = {k: v.to(device) for k, v in inputs.items()}
 
-        # Add reference conditioning
         inputs["conditional_pixel_values"] = cond
 
-    # --- Text prompt mode ---
     else:  # text is not None
         inputs = processor(images=image_pil, text=[text], return_tensors="pt")
         inputs = {k: v.to(device) for k, v in inputs.items()}

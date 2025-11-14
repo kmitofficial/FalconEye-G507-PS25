@@ -5,7 +5,6 @@ from PIL import Image
 import torch
 import cv2
 import numpy as np
-
 from sam_model import segment_on_click
 from image_preprocessing import preprocess_frame
 from boundingbox import get_boundary

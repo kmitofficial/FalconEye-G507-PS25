@@ -92,7 +92,6 @@ def get_subwindow_tracking(im, pos, model_sz, original_sz, avg_chans, out_mode='
 def cxy_wh_2_rect(pos, sz):
     return np.array([pos[0]-sz[0]/2, pos[1]-sz[1]/2, sz[0], sz[1]])  # 0-index
 
-
 def rect_2_cxy_wh(rect):
     return np.array([rect[0]+rect[2]/2, rect[1]+rect[3]/2]), np.array([rect[2], rect[3]])  # 0-index
 
