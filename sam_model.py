@@ -18,8 +18,8 @@ def call_sam(frame: np.ndarray,box):
             box=box[None, :],   # shape [1, 4]
             multimask_output=False
         )
-    refined_mask = masks[0].astype(np.uint8)
-    return refined_mask
+    best_mask = masks[0].astype(np.uint8)
+    return best_mask
 
 # --- Segment on click ---
 def segment_on_click(frame_rgb, max_clicks):
