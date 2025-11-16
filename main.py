@@ -42,9 +42,11 @@ elif choice=='2':
     ref_image = Image.open(image_path).convert("RGB")
     ref_image = np.array(ref_image)
     ref_image = cv2.resize(ref_image, (512, 512))
+    # mask = clipper(rgb_frame,ref_image=ref_image)
     mask=clipping(rgb_frame,ref_image=ref_image)
 elif choice=='3':
     text_prompt = input("Enter text prompt: ")
+    # mask= clipper(rgb_frame, text=text_prompt)
     mask=clipping(rgb_frame, text=text_prompt)
 else:
     print("Invalid choice. Exiting.")
