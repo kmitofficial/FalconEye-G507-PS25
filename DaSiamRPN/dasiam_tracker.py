@@ -56,7 +56,6 @@ class DaSiamRPNTracker:
                 break
             start = time.time()
             frame = cv2.resize(frame, (screen_w, screen_h))
-
             self.state = SiamRPN_track(self.state, frame)
             res = cxy_wh_2_rect(self.state['target_pos'], self.state['target_sz'])
             bbox = [int(res[0]), int(res[1]), int(res[2]), int(res[3])]
