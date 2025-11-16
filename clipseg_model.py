@@ -6,9 +6,7 @@ import torch.nn.functional as F
 from transformers import CLIPSegProcessor, CLIPSegForImageSegmentation
 from sam_model import call_sam  
 
-# --- Setup device ---
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(device)
 
 # --- Load CLIPSeg ---
 processor = CLIPSegProcessor.from_pretrained("CIDAS/clipseg-rd64-refined", use_fast=True)
