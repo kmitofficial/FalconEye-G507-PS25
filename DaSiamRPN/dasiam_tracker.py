@@ -3,116 +3,153 @@ import torch
 import numpy as np
 import time
 import sys, os
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from net import SiamRPNvot
 from run_SiamRPN import SiamRPN_init, SiamRPN_track
 from utils import cxy_wh_2_rect
 
+
 class DaSiamRPNTracker:
     def __init__(self, model_path='models/SiamRPNVOT.model'):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
         self.net = SiamRPNvot()
         self.net.load_state_dict(torch.load(model_path, map_location=self.device))
-        self.net.eval()
-        self.net.to(self.device)
-        self.state = None
-        print("[INFO] DaSiamRPN model loaded successfully on", self.device)
+        self.net.eval().to(self.device)
 
+        self.state = None
+        self.last_good_state = None
+
+        # confidence smoothing
+        self.score_ema = None
+        self.alpha = 0.7
+
+        print("[INFO] DaSiamRPN model loaded on", self.device)
+
+    # -----------------------------------------------------------
+    # INIT FROM MASK (SAM / CLIPSeg OUTPUT)
+    # -----------------------------------------------------------
     def init_from_mask(self, rgb_frame, mask):
         if rgb_frame is None or mask is None:
-            raise ValueError("Both rgb_frame and mask are required")
+            raise ValueError("rgb_frame and mask are required")
 
         ys, xs = np.where(mask > 0)
-        if len(xs) == 0 or len(ys) == 0:
-            raise ValueError("Mask is empty or invalid")
+        if len(xs) == 0:
+            raise ValueError("Mask is empty")
 
         x_min, x_max = xs.min(), xs.max()
         y_min, y_max = ys.min(), ys.max()
-        w, h = x_max - x_min, y_max - y_min
-        cx, cy = x_min + w / 2, y_min + h / 2
+
+        w = max(10, x_max - x_min)
+        h = max(10, y_max - y_min)
+
+        cx = x_min + w / 2
+        cy = y_min + h / 2
 
         target_pos = np.array([cx, cy])
         target_sz = np.array([w, h])
 
         self.state = SiamRPN_init(rgb_frame, target_pos, target_sz, self.net)
-        print(f"[INFO] Tracker initialized: x={x_min}, y={y_min}, w={w}, h={h}")
+        self.last_good_state = self.state.copy()
+
+        print(f"[INFO] Tracker initialized at ({x_min},{y_min},{w},{h})")
         return (x_min, y_min, w, h)
 
+    # -----------------------------------------------------------
+    # LIVE TRACKING
+    # -----------------------------------------------------------
     def track_live(self, video_src=0, display=True):
         if self.state is None:
-            raise RuntimeError("Tracker not initialized. Call init_from_mask() first.")
+            raise RuntimeError("Call init_from_mask() before tracking")
 
         cap = cv2.VideoCapture(video_src)
         if not cap.isOpened():
-            raise RuntimeError("Failed to open webcam/video source")
+            raise RuntimeError("Cannot open video source")
 
         screen_w, screen_h = 512, 512
-        CONF_THRESH = 0.35   # sweet spot for SiamRPN
-        last_good_state = None
+        CONF_THRESH = 0.35
 
-        print("[INFO] Live tracking started...")
+        lost_count = 0
+        MAX_LOST = 15
+
+        print("[INFO] Live tracking started")
 
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
 
-            start = time.time()
             frame = cv2.resize(frame, (screen_w, screen_h))
+            start = time.time()
 
-            # Run tracker
+            # ---- TRACK ----
             self.state = SiamRPN_track(self.state, frame)
 
-            score = self.state.get('best_score', 1.0)
+            raw_score = self.state.get("best_score", 1.0)
 
-            res = cxy_wh_2_rect(
-                self.state['target_pos'],
-                self.state['target_sz']
+            # EMA smoothing
+            if self.score_ema is None:
+                self.score_ema = raw_score
+            else:
+                self.score_ema = self.alpha * self.score_ema + (1 - self.alpha) * raw_score
+
+            score = self.score_ema
+
+            # bbox
+            x, y, w, h = map(
+                int,
+                cxy_wh_2_rect(self.state['target_pos'], self.state['target_sz'])
             )
 
-            x, y, w, h = map(int, res)
+            # ---- CLAMP BOUNDARY (NO FALSE LOSS) ----
+            x = max(0, min(x, screen_w - w))
+            y = max(0, min(y, screen_h - h))
 
-            boundary_hit = (
-                x <= 0 or y <= 0 or
-                (x + w) >= screen_w or
-                (y + h) >= screen_h
-            )
+            weak = score < CONF_THRESH
 
-            low_conf = score < CONF_THRESH
+            if weak:
+                lost_count += 1
+                print(f"[WARN] Weak tracking | score={score:.2f}")
 
-            end = time.time()
-            fps = int(1 / (end - start + 1e-6))
+                if self.last_good_state is not None:
+                    # freeze size, allow mild position update
+                    self.state['target_sz'] = self.last_good_state['target_sz']
+                    self.state = self.last_good_state.copy()
 
-            # ❌ LOST TRACK
-            if boundary_hit or low_conf:
-                print(f"[WARN] Tracking lost | score={score:.2f}")
+                    x, y, w, h = map(
+                        int,
+                        cxy_wh_2_rect(
+                            self.state['target_pos'],
+                            self.state['target_sz']
+                        )
+                    )
 
-                # Freeze state to prevent corruption
-                if last_good_state is not None:
-                    self.state = last_good_state
+            else:
+                lost_count = 0
+                self.last_good_state = self.state.copy()
 
-                yield (0, 0, 0, 0)
+            # ---- HARD LOST (V2 RE-DETECTION SLOT) ----
+            if lost_count >= MAX_LOST:
+                print("[ERROR] Target LOST — holding last known bbox")
+                lost_count = MAX_LOST
+                yield (x, y, w, h)
                 continue
 
-            # ✅ GOOD TRACK
-            last_good_state = self.state.copy()
+            fps = int(1 / (time.time() - start + 1e-6))
 
+            # ---- DISPLAY ----
             if display:
-                cv2.rectangle(
-                    frame,
-                    (x, y),
-                    (x + w, y + h),
-                    (0, 255, 0),
-                    2
-                )
+                color = (0, 255, 0) if not weak else (0, 165, 255)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
                 cv2.putText(
                     frame,
-                    f"FPS: {fps}",
+                    f"FPS:{fps}  Score:{score:.2f}",
                     (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.7,
-                    (0, 255, 0),
+                    color,
                     2
                 )
                 cv2.imshow("DaSiamRPN Tracker", frame)
