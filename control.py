@@ -38,4 +38,4 @@ class RoverController:
         if self.proc:
             self.proc.terminate()
             self.proc.wait()
-            print("🛑 Rover controller stopped")
+            print("🛑 Rover stopped")
