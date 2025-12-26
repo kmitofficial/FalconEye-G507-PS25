@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 
+
 // ---------------- CONFIG ----------------
 constexpr int FRAME_WIDTH  = 640;
 constexpr int FRAME_HEIGHT = 480;
