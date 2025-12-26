@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 from sam_model import segment_on_click
 from image_preprocessing import preprocess_frame
+from control import RoverController
 from boundingbox import get_boundary
 from DaSiamRPN.dasiam_tracker import DaSiamRPNTracker
 from clipseg_model import clipping
@@ -59,11 +60,28 @@ if bbox:
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+rover = RoverController("./rover_controller")
+
 track = input("Do you want to track this object? (y/n): ").strip().lower()
 if track == 'y':
     tracker = DaSiamRPNTracker()
     bbox = tracker.init_from_mask(rgb_frame, mask)
     print("[INFO] Initialized with bbox:", bbox)
 
+try:
     for box in tracker.track_live(video_src=0, display=True):
         print("BBox:", box)
+
+        if box is None:
+            bbox = None
+        else:
+            bbox = tuple(box)
+
+        ctrl_out = rover.send_bbox(bbox)
+        print("[CTRL]", ctrl_out)
+
+except KeyboardInterrupt:
+    print("🛑 Tracking stopped")
+
+finally:
+    rover.close()

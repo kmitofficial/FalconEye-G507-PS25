@@ -48,37 +48,79 @@ class DaSiamRPNTracker:
             raise RuntimeError("Failed to open webcam/video source")
 
         screen_w, screen_h = 512, 512
+        CONF_THRESH = 0.35   # sweet spot for SiamRPN
+        last_good_state = None
+
         print("[INFO] Live tracking started...")
 
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
+
             start = time.time()
             frame = cv2.resize(frame, (screen_w, screen_h))
+
+            # Run tracker
             self.state = SiamRPN_track(self.state, frame)
-            res = cxy_wh_2_rect(self.state['target_pos'], self.state['target_sz'])
-            bbox = [int(res[0]), int(res[1]), int(res[2]), int(res[3])]
-            end= time.time()
-            fps = 1/(end-start)
-            cv2.putText(frame,f"FPS: {int(fps)}",(10,30),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,255,0),2)
-            # Check if bbox touches any boundary
-            x, y, w, h = bbox
-            if x <= 0 or y <= 0 or (x + w) >= screen_w or (y + h) >= screen_h:
-                print("[INFO] Signal lost — object touched screen boundary.")
+
+            score = self.state.get('best_score', 1.0)
+
+            res = cxy_wh_2_rect(
+                self.state['target_pos'],
+                self.state['target_sz']
+            )
+
+            x, y, w, h = map(int, res)
+
+            boundary_hit = (
+                x <= 0 or y <= 0 or
+                (x + w) >= screen_w or
+                (y + h) >= screen_h
+            )
+
+            low_conf = score < CONF_THRESH
+
+            end = time.time()
+            fps = int(1 / (end - start + 1e-6))
+
+            # ❌ LOST TRACK
+            if boundary_hit or low_conf:
+                print(f"[WARN] Tracking lost | score={score:.2f}")
+
+                # Freeze state to prevent corruption
+                if last_good_state is not None:
+                    self.state = last_good_state
+
                 yield (0, 0, 0, 0)
-                continue  
+                continue
+
+            # ✅ GOOD TRACK
+            last_good_state = self.state.copy()
 
             if display:
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.rectangle(
+                    frame,
+                    (x, y),
+                    (x + w, y + h),
+                    (0, 255, 0),
+                    2
+                )
+                cv2.putText(
+                    frame,
+                    f"FPS: {fps}",
+                    (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (0, 255, 0),
+                    2
+                )
                 cv2.imshow("DaSiamRPN Tracker", frame)
 
-            key = cv2.waitKey(1) & 0xFF
-            if key in [ord('q'), ord('Q')]:
-                print("[INFO] Tracking stopped by user.")
+            if cv2.waitKey(1) & 0xFF in [ord('q'), ord('Q')]:
                 break
 
-            yield bbox
+            yield (x, y, w, h)
 
         cap.release()
         cv2.destroyAllWindows()
