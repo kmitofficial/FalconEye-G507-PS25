@@ -176,9 +176,9 @@ This makes FalconEye suitable for **commercial robotics use-cases** where reliab
 
 ## 📖 References
 
-- Segment Anything (SAM) – Kirillov et al.  
-- CLIPSeg – Lüdecke & Ecker  
-- DaSiamRPN – Zhu et al.  
+- Kirillov et al., "Segment Anything", 2023  
+- Lüdecke & Ecker, "CLIPSeg", CVPR 2022  
+- Zhu et al., "DaSiamRPN", ECCV 2018  
 
 ---
 
