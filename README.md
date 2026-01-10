@@ -163,27 +163,6 @@ This makes FalconEye suitable for **commercial robotics use-cases** where reliab
 
 ---
 
-## 📂 Repository Structure
-FalconEye-G507-PS25/
-│
-├── Perception/
-│ ├── SAM/
-│ ├── CLIPSeg/
-│
-├── Tracking/
-│ └── DaSiamRPN/
-│
-├── Control/
-│ ├── Python_Decision_Module/
-│ └── C++_Motor_Controller/
-│
-├── BaseStation_UI/
-│
-└── Docs/
-
-
----
-
 ## 📌 Use Cases
 
 - Human-following robots  
