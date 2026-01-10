@@ -45,7 +45,7 @@ The system is optimized for **performance, deployability, and practical usabilit
 ## 🧠 System Overview
 
 FalconEye converts **user intent** into **persistent target tracking** using the following pipeline:
-![Perception & Tracking Pipeline](Documents/pipeline.png)
+<img src="Docs/pipeline.png" width="700"/>
 
 1. **User Prompt (Base Station)**  
    Click / Image / Text input  
@@ -96,7 +96,7 @@ This separation allows:
 ---
 
 ## ⚙️ Hardware & Software Stack
-![Hardware Prototype](Documents/jetson.png)
+<img src="Docs/rover.jpg" width="600"/>
 
 ### Hardware
 - Jetson AGX Xavier (32GB)  
