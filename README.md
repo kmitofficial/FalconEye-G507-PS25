@@ -1,257 +1,167 @@
-🚀 FalconEye – Prompt-Guided Intelligent Tracking Rover
+# 🚀 FalconEye – Prompt-Guided Intelligent Tracking Rover
 
-FalconEye is a product-oriented intelligent tracking system designed for real-time, robust object following in dynamic environments.
-It enables users to specify a target using clicks, reference images, or natural language, and autonomously tracks and follows the target using a vision–language perception pipeline, distractor-aware tracking, and closed-loop motion control on edge hardware.
+FalconEye is a **product-oriented intelligent tracking system** designed for **real-time, robust object following** in dynamic environments.  
+It enables users to specify a target using **clicks, reference images, or natural language**, and autonomously tracks and follows the target using a **vision–language perception pipeline**, **distractor-aware tracking**, and **closed-loop motion control** on edge hardware.
 
-The system is optimized for performance, deployability, and practical usability, making it suitable for real-world robotics applications such as:
+The system is optimized for **performance, deployability, and practical usability**, making it suitable for real-world robotics applications such as:
 
-Human-following robots
+- Human-following robots  
+- Mobile surveillance  
+- Assistive robotics  
+- Smart delivery & service robots  
+- Autonomous companions  
 
-Mobile surveillance
+---
 
-Assistive robotics
+## ✨ Key Features
 
-Smart delivery & service robots
+- **Multi-modal target specification**
+  - Click-based prompts (SAM)
+  - Reference image prompts (CLIPSeg)
+  - Natural language prompts (CLIPSeg)
 
-Autonomous companions
+- **Vision–Language Object Segmentation**
+  - Open-vocabulary object grounding  
+  - No task-specific retraining required  
 
-🔍 Key Features
+- **Robust Real-Time Tracking**
+  - Distractor-Aware Siamese Tracker (DaSiamRPN)  
+  - Handles occlusion, clutter, and appearance changes  
 
-Multi-modal target specification
+- **Closed-Loop Motion Control**
+  - Maintains target centering  
+  - Regulates distance automatically  
 
-Click-based prompts (SAM)
+- **Edge Deployment**
+  - Runs on **Jetson AGX Xavier**
+  - ~40 FPS real-time performance  
 
-Reference image prompts (CLIPSeg)
+- **Product-Oriented Design**
+  - Focus on stability, responsiveness, and real-world usability  
+  - Modular, scalable architecture  
 
-Natural language prompts (CLIPSeg)
+---
 
-Vision–Language Object Segmentation
+## 🧠 System Overview
 
-Open-vocabulary object grounding
+FalconEye converts **user intent** into **persistent target tracking** using the following pipeline:
 
-No task-specific retraining required
+1. **User Prompt (Base Station)**  
+   Click / Image / Text input  
 
-Robust Real-Time Tracking
+2. **Object Segmentation**  
+   - SAM for spatial clicks  
+   - CLIPSeg for image/text prompts  
 
-Distractor-Aware Siamese Tracker (DaSiamRPN)
+3. **Bounding Box Initialization**  
+   Mask → Bounding box  
 
-Handles occlusion, clutter, and appearance changes
+4. **Visual Tracking**  
+   DaSiamRPN maintains target identity  
 
-Closed-Loop Motion Control
+5. **Decision Module (Python)**  
+   Computes steering & speed  
 
-Maintains target centering
+6. **Motion Control (C++)**  
+   Low-latency motor execution  
 
-Regulates distance automatically
+7. **Autonomous Rover Movement**
 
-Edge Deployment
+The system ensures the target stays **centered in view** and at a **safe distance** during motion.
 
-Runs on Jetson AGX Xavier
+---
 
-~40 FPS real-time performance
+## 🏗️ Architecture
 
-Product-Oriented Design
+FalconEye uses a **distributed architecture**:
 
-Focus on stability, responsiveness, and real-world usability
+### Base Station (Laptop)
+- User interface  
+- Prompt input (Click / Image / Text)  
+- Target specification  
 
-Modular, scalable architecture
-
-🧠 System Overview
-
-FalconEye converts user intent into persistent target tracking using the following pipeline:
-
-User Prompt (Base Station)
-
-Click / Image / Text input
-
-Object Segmentation
-
-SAM for spatial clicks
-
-CLIPSeg for image/text prompts
-
-Bounding Box Initialization
-
-Mask → Bounding box
-
-Visual Tracking
-
-DaSiamRPN maintains target identity
-
-Decision Module (Python)
-
-Computes steering & speed
-
-Motion Control (C++)
-
-Low-latency motor execution
-
-Autonomous Rover Movement
-
-The system ensures the target stays centered in view and at a safe distance during motion.
-
-🏗️ Architecture
-
-FalconEye uses a distributed architecture:
-
-Base Station (Laptop)
-
-User interface
-
-Prompt input (Click / Image / Text)
-
-Target specification
-
-Onboard Rover (Jetson AGX Xavier)
-
-Vision–Language Segmentation
-
-Visual Tracking
-
-Decision Making (Python)
-
-Real-Time Motor Control (C++)
+### Onboard Rover (Jetson AGX Xavier)
+- Vision–Language Segmentation  
+- Visual Tracking  
+- Decision Making (Python)  
+- Real-Time Motor Control (C++)  
 
 This separation allows:
+- Smooth user interaction  
+- High-speed onboard processing  
+- Reliable motion execution  
 
-Smooth user interaction
+---
 
-High-speed onboard processing
+## ⚙️ Hardware & Software Stack
 
-Reliable motion execution
+### Hardware
+- Jetson AGX Xavier (32GB)  
+- Web Camera  
+- Differential Drive Rover  
+- Motor Controller  
 
-⚙️ Hardware & Software Stack
-Hardware
+### Software
+- Python (Perception & Tracking)  
+- C++ (Low-level Control)  
+- OpenCV  
+- PyTorch  
+- SAM (Segment Anything)  
+- CLIPSeg  
+- DaSiamRPN  
 
-Jetson AGX Xavier (32GB)
+---
 
-Web Camera
+## 📊 Performance
 
-Differential Drive Rover
+- **Real-time tracking:** ~40 FPS  
+- **Stable under occlusion & clutter**  
+- **Smooth motion control**  
+- **Consistent target centering**  
+- **Reliable distance regulation**  
 
-Motor Controller
+The system prioritizes **responsiveness and robustness** over offline accuracy metrics, making it suitable for real-world deployment.
 
-Software
+---
 
-Python (Perception & Tracking)
+## 🎯 Product Focus
 
-C++ (Low-level Control)
-
-OpenCV
-
-PyTorch
-
-SAM (Segment Anything)
-
-CLIPSeg
-
-DaSiamRPN
-
-📊 Performance
-
-Real-time tracking: ~40 FPS
-
-Stable under occlusion & clutter
-
-Smooth motion control
-
-Consistent target centering
-
-Reliable distance regulation
-
-The system prioritizes responsiveness and robustness over offline accuracy metrics, making it suitable for real-world deployment.
-
-🎯 Product Focus
-
-FalconEye is designed as a performance-driven product prototype, not just a research demo.
+FalconEye is designed as a **performance-driven product prototype**, not just a research demo.
 
 The emphasis is on:
 
-Real-time operation
+- Real-time operation  
+- Edge deployment  
+- System stability  
+- Practical usability  
+- Modular design  
+- Scalability for future features  
 
-Edge deployment
+This makes FalconEye suitable for **commercial robotics use-cases** where reliability and responsiveness matter more than academic benchmarks.
 
-System stability
+---
 
-Practical usability
+## 🚧 Current Capabilities
 
-Modular design
+- Prompt-based target selection  
+- Real-time object tracking  
+- Autonomous following  
+- Distance control  
+- Clutter & occlusion handling  
 
-Scalability for future features
+---
 
-This makes FalconEye suitable for commercial robotics use-cases where reliability and responsiveness matter more than academic benchmarks.
+## 🛣️ Future Roadmap
 
-🚧 Current Capabilities
+- Long-term re-identification  
+- Multi-target tracking  
+- LiDAR-based obstacle avoidance  
+- Voice-based navigation  
+- Multi-camera fusion  
+- Indoor & outdoor navigation  
+- Cloud-based monitoring  
 
-Prompt-based target selection
+---
 
-Real-time object tracking
-
-Autonomous following
-
-Distance control
-
-Clutter & occlusion handling
-
-🛣️ Future Roadmap
-
-Long-term re-identification
-
-Multi-target tracking
-
-LiDAR-based obstacle avoidance
-
-Voice-based navigation
-
-Multi-camera fusion
-
-Indoor & outdoor navigation
-
-Cloud-based monitoring
-
-📂 Repository Structure
-FalconEye-G507-PS25/
-│
-├── Perception/
-│   ├── SAM/
-│   ├── CLIPSeg/
-│
-├── Tracking/
-│   └── DaSiamRPN/
-│
-├── Control/
-│   ├── Python_Decision_Module/
-│   └── C++_Motor_Controller/
-│
-├── BaseStation_UI/
-│
-└── Docs/
-
-📌 Use Cases
-
-Human-following robots
-
-Smart surveillance
-
-Assistive mobility
-
-Campus robots
-
-Service robots
-
-Autonomous companions
-
-📖 References
-
-Segment Anything (SAM) – Kirillov et al.
-
-CLIPSeg – Lüdecke & Ecker
-
-DaSiamRPN – Zhu et al.
-
-👨‍💻 Author
-
-P. Varun Sai
-Department of Computer Science & Engineering
-Keshav Memorial Institute of Technology
-Hyderabad, India
+## 📂 Repository Structure
 
