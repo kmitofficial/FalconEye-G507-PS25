@@ -164,4 +164,49 @@ This makes FalconEye suitable for **commercial robotics use-cases** where reliab
 ---
 
 ## 📂 Repository Structure
+FalconEye-G507-PS25/
+│
+├── Perception/
+│ ├── SAM/
+│ ├── CLIPSeg/
+│
+├── Tracking/
+│ └── DaSiamRPN/
+│
+├── Control/
+│ ├── Python_Decision_Module/
+│ └── C++_Motor_Controller/
+│
+├── BaseStation_UI/
+│
+└── Docs/
+
+
+---
+
+## 📌 Use Cases
+
+- Human-following robots  
+- Smart surveillance  
+- Assistive mobility  
+- Campus robots  
+- Service robots  
+- Autonomous companions  
+
+---
+
+## 📖 References
+
+- Segment Anything (SAM) – Kirillov et al.  
+- CLIPSeg – Lüdecke & Ecker  
+- DaSiamRPN – Zhu et al.  
+
+---
+
+## 👨‍💻 Author
+
+**P. Varun Sai**  
+Department of Computer Science & Engineering  
+Keshav Memorial Institute of Technology  
+Hyderabad, India  
 
