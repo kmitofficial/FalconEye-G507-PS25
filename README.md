@@ -45,7 +45,7 @@ The system is optimized for **performance, deployability, and practical usabilit
 ## 🧠 System Overview
 
 FalconEye converts **user intent** into **persistent target tracking** using the following pipeline:
-![Perception & Tracking Pipeline](Docs/pipeline.png)
+![Perception & Tracking Pipeline](Documents/pipeline.png)
 
 1. **User Prompt (Base Station)**  
    Click / Image / Text input  
@@ -75,7 +75,7 @@ The system ensures the target stays **centered in view** and at a **safe distanc
 ## 🏗️ Architecture
 
 FalconEye uses a **distributed architecture**:
-![System Architecture](Docs/architecture.png)
+![System Architecture](Documents/architecture.png)
 
 ### Base Station (Laptop)
 - User interface  
@@ -96,7 +96,7 @@ This separation allows:
 ---
 
 ## ⚙️ Hardware & Software Stack
-![Hardware Prototype](Docs/rover.jpg)
+![Hardware Prototype](Documents/jetson.png)
 
 ### Hardware
 - Jetson AGX Xavier (32GB)  
@@ -179,7 +179,7 @@ This makes FalconEye suitable for **commercial robotics use-cases** where reliab
 ## 📄 Technical Report
 
 A detailed technical description of FalconEye is available here:  
-[Read the full technical report](Docs/FalconEye_Research_Paper.pdf)
+[Read the full technical report](Documents/FalconEye_Research_Paper.pdf)
 
 ---
 
