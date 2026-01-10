@@ -75,7 +75,7 @@ The system ensures the target stays **centered in view** and at a **safe distanc
 ## 🏗️ Architecture
 
 FalconEye uses a **distributed architecture**:
-![System Architecture](<img src="Docs/architecture_diagram.png" width="700"/>)
+![System Architecture](<img src="Documents/architecture_diagram.png" width="700"/>)
 
 ### Base Station (Laptop)
 - User interface  
