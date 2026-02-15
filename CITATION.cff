@@ -1,0 +1,9 @@
+cff-version: 1.0.0
+title: FalconEye
+message: "If you use this project, please cite it."
+type: software
+authors:
+  - given-names: Varun
+    family-names: Sai
+repository-code: https://github.com/Varun-sai-500/FalconEye
+license: MIT
