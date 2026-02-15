@@ -3,7 +3,6 @@ title: FalconEye
 message: "If you use this project, please cite it."
 type: software
 authors:
-  - given-names: Varun
-    family-names: Sai
+  - given-names: Varun Sai
 repository-code: https://github.com/Varun-sai-500/FalconEye
 license: MIT
