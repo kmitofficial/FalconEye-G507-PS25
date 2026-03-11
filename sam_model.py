@@ -45,7 +45,6 @@ def segment_on_click(frame_rgb, max_clicks):
 
     cv2.destroyAllWindows()
 
-    # --- Feed RGB frame to SAM ---
     predictor.set_image(frame_rgb)
     point_labels = np.ones(len(coords), dtype=int)
 
