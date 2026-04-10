@@ -15,7 +15,7 @@ from image_preprocessing import preprocess_frame
 from control import RoverController
 from boundingbox import get_boundary
 from DaSiamRPN.dasiam_tracker import DaSiamRPNTracker
-from clipseg_model import clipping
+from clip import clipping
 
 
 class FalconEye(Node):
