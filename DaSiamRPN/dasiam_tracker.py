@@ -11,6 +11,8 @@ from net import SiamRPNvot
 from run_SiamRPN import SiamRPN_init, SiamRPN_track
 from utils import cxy_wh_2_rect
 
+torch.set_grad_enabled(False)
+
 try:
     import onnxruntime as ort
     ORT_AVAILABLE = True
@@ -28,21 +30,32 @@ class _ONNXNet:
     temple() is a no-op — real kernels already baked into the graph.
     """
     def __init__(self, onnx_path):
+        self.fps_ema = None
+        self.alpha_fps = 0.9
+        self.last_model_fps = 0.0
         providers = (
             ['CUDAExecutionProvider', 'CPUExecutionProvider']
             if ORT_AVAILABLE and 'CUDAExecutionProvider' in ort.get_available_providers()
             else ['CPUExecutionProvider']
         )
-        self.session    = ort.InferenceSession(onnx_path, providers=providers)
+        so = ort.SessionOptions()
+        self.session    = ort.InferenceSession(onnx_path,sess_options=so, providers=providers)
         self.input_name = self.session.get_inputs()[0].name
         print(f"[INFO] ONNX session loaded | provider: {self.session.get_providers()[0]}")
 
     def __call__(self, x_crop):
-        x_np = x_crop.cpu().numpy().astype(np.float32)
+        x_np = x_crop if x_crop.dtype == np.float32 else x_crop.astype(np.float32)
+
+        t0 = time.perf_counter()   # ✅ model timing start
+
         regression, classification = self.session.run(
             None, {self.input_name: x_np}
         )
-        return torch.from_numpy(regression), torch.from_numpy(classification)
+
+        dt = time.perf_counter() - t0
+        self.last_model_fps = 1.0 / dt   # ✅ store model FPS
+
+        return regression, classification
 
     def temple(self, z):
         pass   # no-op — kernels already baked in
@@ -65,6 +78,8 @@ class DaSiamRPNTracker:
             use_onnx   : False → pure PyTorch the whole way
         """
         self.model_path = model_path
+        self.fps_ema = None
+        self.alpha_fps = 0.9
         self.onnx_path  = onnx_path
         self.use_onnx   = use_onnx and ORT_AVAILABLE
         self.device     = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -184,9 +199,11 @@ class DaSiamRPNTracker:
                 break
 
             frame = cv2.resize(frame, (SCREEN_W, SCREEN_H))
-            t0    = time.time()
 
-            # pass active_net into state so SiamRPN_track uses correct backend
+            # ✅ START TIMER (correct place)
+            t0 = time.perf_counter()
+
+            # ---------------- TRACKING ----------------
             self.state['net'] = active_net
             self.state        = SiamRPN_track(self.state, frame)
 
@@ -219,7 +236,7 @@ class DaSiamRPNTracker:
                         )
                     )
             else:
-                lost_count           = 0
+                lost_count = 0
                 self.last_good_state = self.state.copy()
 
             if lost_count >= MAX_LOST:
@@ -228,14 +245,28 @@ class DaSiamRPNTracker:
                 yield (x, y, w, h)
                 continue
 
-            fps = int(1 / (time.time() - t0 + 1e-6))
+            # ✅ END TIMER (correct place)
+            dt = time.perf_counter() - t0
 
+            # --- Instant FPS ---
+            fps_inst = 1.0 / dt
+
+            # --- Smoothed FPS ---
+            if self.fps_ema is None:
+                self.fps_ema = fps_inst
+            else:
+                self.fps_ema = self.alpha_fps * self.fps_ema + (1 - self.alpha_fps) * fps_inst
+
+            # --- Model FPS ---
+            model_fps = getattr(active_net, "last_model_fps", 0.0)
+
+            # ---------------- DISPLAY ----------------
             if display:
                 color = (0, 255, 0) if not weak else (0, 165, 255)
                 cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
                 cv2.putText(
                     frame,
-                    f"{mode_label} | FPS:{fps} | Score:{score:.2f}",
+                    f"{mode_label} | E2E:{int(self.fps_ema)} | Inst:{int(fps_inst)} | Model:{int(model_fps)} | S:{score:.2f}",
                     (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.65,
@@ -248,6 +279,3 @@ class DaSiamRPNTracker:
                 break
 
             yield (x, y, w, h)
-
-        cap.release()
-        cv2.destroyAllWindows()
