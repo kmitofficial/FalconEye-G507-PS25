@@ -57,8 +57,21 @@ class TrackerConfig(object):
 
 
 def tracker_eval(net, x_crop, target_pos, target_sz, window, scale_z, p):
-    # ONNX forward → returns numpy directly
-    delta, score = net(x_crop)   # EXPECT numpy arrays
+    if isinstance(net, torch.nn.Module):
+        x_crop = torch.from_numpy(x_crop).float()
+
+        if torch.cuda.is_available():
+            x_crop = x_crop.cuda()
+
+        with torch.no_grad():
+            delta, score = net(x_crop)
+
+        delta = delta.cpu().numpy()
+        score = score.cpu().numpy()
+
+    else:
+        # ONNX path
+        delta, score = net(x_crop)
 
     # reshape (match original torch logic)
     delta = delta.transpose(1, 2, 3, 0).reshape(4, -1)

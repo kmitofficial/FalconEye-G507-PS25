@@ -9,8 +9,16 @@ from sam_model import call_sam
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # --- Load CLIPSeg ---
-processor = CLIPSegProcessor.from_pretrained("CIDAS/clipseg-rd64-refined", use_fast=True)
-model = CLIPSegForImageSegmentation.from_pretrained("CIDAS/clipseg-rd64-refined").to(device)
+MODEL_ID = "CIDAS/clipseg-rd64-refined"
+processor = CLIPSegProcessor.from_pretrained(
+    MODEL_ID,
+    backend="torchvision"
+)
+model = CLIPSegForImageSegmentation.from_pretrained(
+    MODEL_ID,
+    torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32
+).to(device)
+
 model.eval()
 
 # --- Main segmentation function ---

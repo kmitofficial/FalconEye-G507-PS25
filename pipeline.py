@@ -1,26 +1,25 @@
+import time
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-import time
 from PIL import Image
 import torch
 import cv2
 import numpy as np
+
 from sam_model import segment_on_click
+from clipseg import clipping
 from image_preprocessing import preprocess_frame
-from control import RoverController
+# from control import RoverController
 from boundingbox import get_boundary
 from DaSiamRPN.dasiam_tracker import DaSiamRPNTracker
-from clipseg_model import clipping
 
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     print("Cannot open camera")
-    exit()
 print("Capturing frame...")
 time.sleep(2)
 
 ret, frame = cap.read()
-
 if not ret:
     print("Cannot capture frame")
     exit()
@@ -68,7 +67,7 @@ if bbox:
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-rover = RoverController("./rover_controller")
+# rover = RoverController("./rover_controller")
 
 tracker = DaSiamRPNTracker()
 bbox = tracker.init_from_mask(rgb_frame, mask)
@@ -82,11 +81,11 @@ try:
         else:
             bbox = tuple(box)
 
-        ctrl_out = rover.send_bbox(bbox)
-        print("[CTRL]", ctrl_out)
+        # ctrl_out = rover.send_bbox(bbox)
+        # print("[CTRL]", ctrl_out)
 
 except KeyboardInterrupt:
     print("🛑 Tracking stopped")
 
-finally:
-    rover.close()
+# finally:
+    # rover.close()
