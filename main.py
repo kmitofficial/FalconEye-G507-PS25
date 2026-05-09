@@ -18,15 +18,23 @@ if not cap.isOpened():
     exit()
 print("Capturing frame...")
 time.sleep(2)
+
 ret, frame = cap.read()
+
 if not ret:
-    print("cannot capture frame")
-else:
-    rgb_frame , frame_resized = preprocess_frame(frame)
-    cv2.imshow("frame", frame)
-    cv2.waitKey(0)   
+    print("Cannot capture frame")
+    exit()
+
+rgb_frame, frame_resized = preprocess_frame(frame)
+
+cv2.imshow("Captured Frame", frame)
+
+# Show for 2 seconds
+cv2.waitKey(2000)
+
+cv2.destroyWindow("Captured Frame")
+
 cap.release()
-cv2.destroyAllWindows()
 
 print("Choose an option:")
 print("1. Click")
@@ -36,7 +44,7 @@ print("3. Text")
 choice = input("Enter 1, 2, or 3: ").strip()
 if choice=='1':
     clicks=int(input("Enter number of clicks: "))
-    mask = segment_on_click(rgb_frame,clicks)         
+    mask = segment_on_click(rgb_frame,clicks)
 elif choice=='2':
     Tk().withdraw()
     image_path = askopenfilename(title="Select an image file", filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp")])
