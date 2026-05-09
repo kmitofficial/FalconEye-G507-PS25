@@ -1,7 +1,3 @@
-import rclpy
-from rclpy.node import Node
-from sensor_msgs.msg import CompressedImage
-
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import time
@@ -9,7 +5,6 @@ from PIL import Image
 import torch
 import cv2
 import numpy as np
-
 from sam_model import segment_on_click
 from image_preprocessing import preprocess_frame
 from control import RoverController
@@ -23,20 +18,28 @@ if not cap.isOpened():
     exit()
 print("Capturing frame...")
 time.sleep(2)
-ret, frame = cap.read()
-if not ret:
-    print("cannot capture frame")
-else:
-    rgb_frame , frame_resized = preprocess_frame(frame)
-    cv2.imshow("frame", frame)
-    cv2.waitKey(0)
-cap.release()
-cv2.destroyAllWindows()
 
-        print("Choose an option:")
-        print("1. Click")
-        print("2. Reference image")
-        print("3. Text")
+ret, frame = cap.read()
+
+if not ret:
+    print("Cannot capture frame")
+    exit()
+
+rgb_frame, frame_resized = preprocess_frame(frame)
+
+cv2.imshow("Captured Frame", frame)
+
+# Show for 2 seconds
+cv2.waitKey(2000)
+
+cv2.destroyWindow("Captured Frame")
+
+cap.release()
+
+print("Choose an option:")
+print("1. Click")
+print("2. Reference image")
+print("3. Text")
 
 choice = input("Enter 1, 2, or 3: ").strip()
 if choice=='1':
@@ -58,36 +61,32 @@ else:
     print("Invalid choice. Exiting.")
     exit()
 
-        bbox, frame_with_box = get_boundary(mask, frame_resized)
+bbox, frame_with_box = get_boundary(mask, frame_resized)
+if bbox:
+    print("Bounding box:", bbox)
+    cv2.imshow("Tracked Object", frame_with_box)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
-        if bbox:
-            print("Bounding box:", bbox)
-            cv2.imshow("Tracked Object", frame_with_box)
-            cv2.waitKey(1)
+rover = RoverController("./rover_controller")
 
-        tracker = DaSiamRPNTracker()
-        bbox = tracker.init_from_mask(rgb_frame, mask)
+tracker = DaSiamRPNTracker()
+bbox = tracker.init_from_mask(rgb_frame, mask)
+print("[INFO] Initialized with bbox:", bbox)
+try:
+    for box in tracker.track_live(video_src=0, display=True):
+        print("BBox:", box)
 
-        print("[INFO] Initialized tracker:", bbox)
+        if box is None:
+            bbox = None
+        else:
+            bbox = tuple(box)
 
-        try:
-            for box in tracker.track_live(video_src=0, display=True):
-                print("BBox:", box)
+        ctrl_out = rover.send_bbox(bbox)
+        print("[CTRL]", ctrl_out)
 
-        except KeyboardInterrupt:
-            print("Stopped")
+except KeyboardInterrupt:
+    print("🛑 Tracking stopped")
 
-        finally:
-            cv2.destroyAllWindows()
-
-
-def main():
-    rclpy.init()
-    node = FalconEye()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
-
-
-if __name__ == "__main__":
-    main()
+finally:
+    rover.close()
