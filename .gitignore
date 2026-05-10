@@ -79,10 +79,8 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-#model weights
-/models/
-models/
-
+*.pth
+*.model
 
 
 # IPython
