@@ -8,9 +8,9 @@ import numpy as np
 
 from sam_model import segment_on_click
 from clipseg import clipping
-from image_preprocessing import preprocess_frame
+from utils.image_preprocessing import preprocess_frame
 # from control import RoverController
-from boundingbox import get_boundary
+from utils.boundingbox import get_boundary
 from DaSiamRPN.dasiam_tracker import DaSiamRPNTracker
 
 cap = cv2.VideoCapture(0)
