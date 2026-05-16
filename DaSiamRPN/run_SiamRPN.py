@@ -155,6 +155,7 @@ def SiamRPN_init(im, target_pos, target_sz, net):
     z_crop = get_subwindow_tracking(im, target_pos, p.exemplar_size, s_z, avg_chans)
 
     z = torch.from_numpy(z_crop).float().unsqueeze(0)
+    z = z.to(next(net.parameters()).device)
     net.temple(z)
 
     if p.windowing == 'cosine':
