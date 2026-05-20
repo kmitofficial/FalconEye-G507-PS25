@@ -82,7 +82,7 @@ class DaSiamRPNTracker:
         self.alpha_fps = 0.9
         self.onnx_path  = onnx_path
         self.use_onnx   = use_onnx and ORT_AVAILABLE
-        self.device     = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device     = torch.device('cuda' if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available()  else 'cpu')
 
         # always load PyTorch net — needed for temple() during init
         self.pt_net = SiamRPNvot()

@@ -6,7 +6,7 @@ from PIL import Image
 
 sam_checkpoint = "models/sam_vit_b_01ec64.pth"
 model_type = "vit_b"
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 
 sam = sam_model_registry[model_type](checkpoint=sam_checkpoint).to(device)
 predictor = SamPredictor(sam)
